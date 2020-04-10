@@ -57,12 +57,14 @@
 </body>
 
 </html>
+<script src="./libs/http.js"></script>
+
 <script>
     $(function () {
 
         $.ajax({
             type: 'get',
-            url: 'http://localhost:8080/api/v1/admin/user/info',
+            url: window.BigNew.user_info,
             // 带上token令牌
             // headers: {
             //     'Authorization': localStorage.getItem('token')
@@ -76,5 +78,18 @@
                 }
             }
         });
+
+
+        //登出功能
+        $('.logout').on('click', function () {
+            // 删除token
+            if (confirm('确定退出吗?')) {
+                window.localStorage.removeItem('token');
+                window.location.href = './login.html';
+            }
+        });
+
+
+
     });
 </script>

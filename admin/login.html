@@ -61,8 +61,12 @@
           password: password,
         },
         success: function (backData) {
+          console.log(backData.code);
           if (backData.code == 200) {
             alert('登录成功');
+            // 存一下token
+            window.localStorage.setItem("token", backData.token);
+            // 跳转首页
             window.location.href = './index.html';
           } else {
             alert('账号或密码错误');

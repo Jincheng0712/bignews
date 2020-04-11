@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="./libs/jquery-1.12.4.min.js"></script>
+    <script src="./libs/http.js"></script>
 
 </head>
 
@@ -71,3 +72,54 @@
 </body>
 
 </html>
+<script>
+    $(function () {
+
+        // 一: 个人中心页面更新管理员的所有信息
+        $.ajax({
+            type: 'get',
+            url: BigNew.user_detail,
+            success: function (backData) {
+                $('input.username').val(backData.data.username);
+                $('input.nickname').val(backData.data.nickname);
+                $('input.email').val(backData.data.email);
+                $('input.password').val(backData.data.password);
+                $('img.user_pic').attr('src', backData.data.userPic);
+            }
+        });
+
+
+        // 二.图片预览
+        // 给选择图片的input设置change事件
+        $('#exampleInputFile').on('change', function () {
+            // 获取传进来的图片
+            var fileIcon = this.files[0];
+            // 给传进来的图片生成一个路径
+            var url = URL.createObjectURL(fileIcon);
+            // 把这个路径给预览的img
+            $('img.user_pic').attr('src', url);
+        });
+
+
+        //三: 点击修改按钮,完成个人信息的修改
+        $('button.btn-edit').on('click', function (e) {
+            e.preventDefault();
+            // 创建formdata对象
+            var fd = new FormData($('#form')[0]);
+            $.ajax({
+                type: 'post',
+                url: BigNew.user_edit,
+                data: fd,
+                contentType: false,
+                processData: false,
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        alert('修改成功');
+                        parent.window.location.reload();
+                    }
+                }
+            });
+
+        });
+    });
+</script>

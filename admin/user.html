@@ -44,8 +44,11 @@
                 <div class="form-group">
                     <label for="inputPassword3" class="col-sm-2 control-label">用户图标：</label>
                     <div class="col-sm-10">
+                        <!-- 预览用的img -->
                         <img src="images/2.jpg" alt="" class="user_pic">
-                        <input style="display: block" name="userPic" type="file" id="exampleInputFile">
+                        <!-- 实际开发中,这个按钮基本不用.因为样式难看,
+                            通常设计一个美观的图片,再指向这个input标签 -->
+                        <input style="display: none" name="userPic" type="file" id="exampleInputFile">
                         <!-- 给label标签的for属性赋值,值是input标签的id,那这样的话点击label就相当于点击了input -->
                         <br>
                         <label for="exampleInputFile">
@@ -115,11 +118,27 @@
                 success: function (backData) {
                     if (backData.code == 200) {
                         alert('修改成功');
-                        parent.window.location.reload();
+                        // 方法一:直接刷新页面(用户体验不好)
+                        // parent.window.location.reload();
+                        // 方法二:发送ajax请求局部更新
+                        $.ajax({
+                            type: 'get',
+                            url: BigNew.user_info,
+                            success: function (backData) {
+                                // console.log(backData);
+                                if (backData.code == 200) {
+                                    console.log(backData.code);
+                                    parent.$('.user_info>span').text('欢迎 ' + backData.data.nickname);
+                                    parent.$('.user_info>img').attr('src', backData.data.userPic);
+                                    parent.$('.user_center_link>img').attr('src', backData.data.userPic);
+                                }
+                            }
+                        });
                     }
                 }
             });
-
         });
+
+
     });
 </script>

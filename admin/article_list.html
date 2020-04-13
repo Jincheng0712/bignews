@@ -75,3 +75,29 @@
 </body>
 
 </html>
+<script id="category_temp" type="text/html">
+    <option value="">所有分类</option>
+    {{each data v}}
+    <option value={{v.id}}>{{v.name}}</option>
+    {{/each}}
+
+
+</script>
+<script src="./libs/http.js"></script>
+<script>
+    $(function () {
+        // 发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        $.ajax({
+            type: 'get',
+            url: BigNew.category_list,
+            success: function (backData) {
+                // console.log(backData);
+                if (backData.code == 200) {
+                    console.log(backData);
+                    var resHtml = template('category_temp', backData);
+                    $('#selCategory').html(resHtml);
+                }
+            }
+        });
+    });
+</script>

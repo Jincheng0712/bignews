@@ -13,6 +13,7 @@
     <script src="./libs/jquery-1.12.4.min.js"></script>
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
+    <script src="libs/http.js"></script>
 </head>
 
 <body>
@@ -75,29 +76,66 @@
 </body>
 
 </html>
+<!-- 文章类别模板 -->
 <script id="category_temp" type="text/html">
     <option value="">所有分类</option>
     {{each data v}}
     <option value={{v.id}}>{{v.name}}</option>
     {{/each}}
-
-
 </script>
+<!-- 文章列表模板 -->
+<script id="articlelist_temp" type="text/html">
+    {{each data.data v}}
+    <tr>
+        <td>{{v.title}}</td>
+        <td>{{v.author}}</td>
+        <td>{{v.category}}</td>
+        <td class="text-center">{{v.date}}</td>
+        <td class="text-center">{{v.state}}</td>
+        <td class="text-center">
+            <a href="article_edit.html?id={{v.id}}" class="btn btn-default btn-xs">编辑</a>
+            <a href="javascript:void(0);" data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
+        </td>
+    </tr>
+{{/each}}
+</script>
+
 <script src="./libs/http.js"></script>
 <script>
     $(function () {
-        // 发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        // 一.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
         $.ajax({
             type: 'get',
             url: BigNew.category_list,
             success: function (backData) {
                 // console.log(backData);
                 if (backData.code == 200) {
-                    console.log(backData);
+                    // console.log(backData);
                     var resHtml = template('category_temp', backData);
                     $('#selCategory').html(resHtml);
                 }
             }
         });
+
+        // 二.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        $.ajax({
+            type: 'get',
+            url: BigNew.article_query,
+            data: {
+                type: $('#selCategory').val().trim(),
+                state: $('#selStatus').val().trim(),
+                perpage: 8,
+
+            },
+            success: function (backData) {
+                console.log(backData);
+                if (backData.code == 200) {
+                    var resHtml = template('articlelist_temp', backData);
+                    $('tbody').html(resHtml);
+                }
+            }
+        });
+
+
     });
 </script>

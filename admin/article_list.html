@@ -14,6 +14,7 @@
     <!-- 引入模板引擎js文件 -->
     <script src="./libs/template-web.js"></script>
     <script src="libs/http.js"></script>
+    <script src="libs/jquery.twbsPagination.js"></script>
 </head>
 
 <body>
@@ -70,6 +71,8 @@
                 </tbody>
             </table>
             <div class="row text-center">
+                <ul id="pagination" class="pagination-sm"></ul>
+                <p>没有查找到数据,空空如也~</p>
             </div>
         </div>
     </div>
@@ -103,6 +106,8 @@
 <script src="./libs/http.js"></script>
 <script>
     $(function () {
+        var currPage;
+
         // 一.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
         $.ajax({
             type: 'get',
@@ -117,25 +122,182 @@
             }
         });
 
-        // 二.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
-        $.ajax({
-            type: 'get',
-            url: BigNew.article_query,
-            data: {
-                type: $('#selCategory').val().trim(),
-                state: $('#selStatus').val().trim(),
-                perpage: 8,
+        //===========================不封装写法=====================================
+        // // 二.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        // $.ajax({
+        //     type: 'get',
+        //     url: BigNew.article_query,
+        //     data: {
+        //         type: $('#selCategory').val().trim(),
+        //         state: $('#selStatus').val().trim(),
+        //         perpage: 3,
+        //     },
+        //     success: function (backData) {
+        //         console.log(backData);
+        //         if (backData.code == 200) {
+        //             var resHtml = template('articlelist_temp', backData);
+        //             $('tbody').html(resHtml);
+        //             // 分页插件
+        //             $('#pagination').twbsPagination({
+        //                 totalPages: backData.data.totalPage,
+        //                 first: '首页',
+        //                 prev: '上一页',
+        //                 next: '下一页',
+        //                 last: '尾页',
+        //                 visiblePages: 6,
+        //                 onPageClick: function (event, page) {
+        //                     $.ajax({
+        //                         type: 'get',
+        //                         url: BigNew.article_query,
+        //                         data: {
+        //                             type: $('#selCategory').val().trim(),
+        //                             state: $('#selStatus').val().trim(),
+        //                             page: page,
+        //                             perpage: 3,
+        //                         },
+        //                         success: function (backData) {
+        //                             console.log(backData);
+        //                             if (backData.code == 200) {
+        //                                 var resHtml = template('articlelist_temp', backData);
+        //                                 $('tbody').html(resHtml);
+        //                             }
+        //                         }
+        //                     });
+        //                 }
+        //             });
+        //         }
+        //     }
+        // });
 
-            },
-            success: function (backData) {
-                console.log(backData);
-                if (backData.code == 200) {
-                    var resHtml = template('articlelist_temp', backData);
-                    $('tbody').html(resHtml);
+
+
+        // // 三.点击筛选按钮,显示按条件筛选后的文章
+        // $('#btnSearch').on('click', function (e) {
+        //     // 取消按钮默认事件
+        //     e.preventDefault();
+        //     $.ajax({
+        //         type: 'get',
+        //         url: BigNew.article_query,
+        //         data: {
+        //             type: $('#selCategory').val().trim(),
+        //             state: $('#selStatus').val().trim(),
+        //             perpage: 3,
+        //         },
+        //         success: function (backData) {
+        //             // console.log(backData);
+        //             if (backData.code == 200) {
+        //                 var resHtml = template('articlelist_temp', backData);
+        //                 $('tbody').html(resHtml);
+        //                 // 单机筛选按钮,由于条件改变总页数也会改变,所以需要根据总页数重新绘制分页结构
+        //                 $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+        //             }
+        //         }
+        //     });
+        // });
+
+        //===========================不封装写法=====================================
+
+
+        //===========================封装函数写法=====================================
+
+        // 封装:根据条件获取对应的文章发送ajax请求函数
+        // myPage:就是当前页码
+        // callback:渲染后要执行的操作
+        function getData(myPage, callback) {
+            $.ajax({
+                type: 'get',
+                url: BigNew.article_query,
+                data: {
+                    type: $('#selCategory').val().trim(),
+                    state: $('#selStatus').val().trim(),
+                    page: myPage,
+                    perpage: 3,
+                },
+                success: function (backData) {
+                    if (backData.code == 200) {
+                        var resHtml = template('articlelist_temp', backData);
+                        $('tbody').html(resHtml);
+
+                        // 判断相应回来有没有数据
+                        // 如果有
+                        if (backData.data.data.length != 0 && callback != null) {
+                            // 显示分页,隐藏提示语p标签
+                            $('#pagination').show().next('p').hide();
+                            // 渲染后要执行的操作,即调用callback
+                            callback(backData);
+                        }
+                        // 如果分页是1,而且返回的数据长度是0,那说明真的没有文章
+                        else if (backData.data.data.length == 0 && currPage == 1) {
+                            // 隐藏分页,显示提示语p标签
+                            $('#pagination').hide().next('p').show();
+                        }
+                        // 如果当前页-1等于总页数,并且返回的文章长度为0,说明当前页是最后页且为空
+                        else if (backData.data.totalPage == currPage - 1 && backData.data.data.length == 0) {
+                            // 因此当前页需要-1,重新渲染分页,并跳转到新的最后页
+                            currPage -= 1;
+                            $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, currPage);
+                        }
+                    }
                 }
-            }
+            });
+        }
+
+
+        // 二.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        getData(1, function (backData) {
+            // 分页插件
+            $('#pagination').twbsPagination({
+                totalPages: backData.data.totalPage,
+                first: '首页',
+                prev: '上一页',
+                next: '下一页',
+                last: '尾页',
+                visiblePages: 6,
+                onPageClick: function (event, page) {
+                    // 拿到点击之后的当前页
+                    currPage = page;
+                    getData(page, null);  //调用封装的函数
+                }
+            });
+
+        })
+
+
+        // 三.点击筛选按钮,显示按条件筛选后的文章
+        $('#btnSearch').on('click', function (e) {
+            // 取消按钮默认事件
+            e.preventDefault();
+            currPage = 1;
+            getData(1, function (backData) {
+                // 单机筛选按钮,由于条件改变总页数也会改变,所以需要根据总页数重新绘制分页结构
+                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, 1);
+            })
         });
 
+        //===========================封装函数写法=====================================
+
+        // 四.删除文章
+        // 设置委托事件
+        $('tbody').on('click', '.delete', function () {
+            if (confirm('你确定要删除吗?')) {
+                var articleId = $(this).attr('data-id');
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.article_delete,
+                    data: { id: articleId },
+                    success: function (backData) {
+                        if (backData.code == 204) {
+                            // 删除成功,重新加载数据
+                            // 由于删除数据总的页码可能减少,那就应该根据新的总页码重新生成分页结构
+                            getData(currPage, function (backData) {
+                                // 重绘分页结构
+                                $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, currPage);
+                            });
+                        }
+                    }
+                });
+            }
+        });
 
     });
 </script>

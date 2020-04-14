@@ -70,3 +70,33 @@
 </body>
 
 </html>
+<!-- 文章类别模板 -->
+<script id="art_category_temp" type="text/html">
+    {{each data v}}
+    <option value={{v.id}}>{{v.name}}</option>
+    {{/each}}
+</script>
+<script src="libs/http.js"></script>
+<script>
+    $(function () {
+        // 一.头像预览
+        $('#inputCover').on('change', function () {
+            var file1 = this.files[0];
+            var url1 = URL.createObjectURL(file1);
+            $('.article_cover').attr('src', url1);
+        });
+
+
+        // 二.发送请求,获取所有文章类别,用模板引擎渲染到下拉菜单
+        $.ajax({
+            type: 'get',
+            url: BigNew.category_list,
+            success: function (backData) {
+                if (backData.code == 200) {
+                    var resHtml = template('art_category_temp', backData);
+                    $('select.category').html(resHtml);
+                }
+            }
+        });
+    });
+</script>

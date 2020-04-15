@@ -230,3 +230,87 @@
 </body>
 
 </html>
+<!-- =======================模板引擎模板========================== -->
+
+<!-- 文章列表页模板 -->
+<script id="list_temp" type="text/html">
+    {{ each data.data v }}
+    <div class="common_news_list">
+        <a href="./article.html?id={{v.id}}" class="list_pic"><img src="{{v.cover}}" alt=""></a>
+        <h4><a href="./article.html?id={{v.id}}">{{v.title}} </a></h4>
+        <p>{{v.content}}</p>
+        <div class="new_info">
+            <span>标签：{{v.category}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;
+                阅读( {{v.read}} )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
+            <b>发布于 {{v.data}}</b>
+        </div>
+    </div>
+    {{/each}}
+</script>
+
+<!-- =======================js代码========================== -->
+<script>
+    $(function () {
+        //一:要先判断是如何进到这个list页面的.
+        // window.location.search可以获取url中?号和?后面的内容
+        var value = window.location.search;
+        // console.log(value);
+        var value1 = value.split('=')[0];
+        var value2 = value.split('=')[1];
+        // 情况1:如果value拿到的是空说明是手动输入网址进来
+        if (value == '') {
+            window.location.href = './index.html'
+        }
+        // 情况2:如果路径中有?category 说明是从文章类别点击进来的
+        else if (value1 == '?categoryId') {
+            // console.log('点类别进来的');
+            // 应该显示该文章类别的文章
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/api/v1/index/search',
+                data: {
+                    type: value2
+                },
+                success: function (backData) {
+                    // console.log(backData);
+                    var resHtml = template('list_temp', backData);
+                    if (backData.data.data.length > 0) {
+                        $('div.left_con.setfr').html('<div class="list_title"><h3>' + backData.data.data[0].category + '</h3></div>' + resHtml)
+                    } else {
+                        $('div.left_con.setfr').html('<div class="list_title"><h3>没有数据~</h3></div>')
+                    }
+                }
+            });
+
+        }
+        // 情况3:否则是点击搜索按钮进来的
+        else {
+            // console.log('搜索关词进来的'); //应该显示含该关键词的文章
+            // 将Unicode格式编码转译为汉字
+            value2 = decodeURI(value2);
+            $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/api/v1/index/search',
+                data: {
+                    key: value2
+                },
+                success: function (backData) {
+                    // console.log(backData);
+                    var resHtml = template('list_temp', backData);
+                    if (backData.data.data.length > 0) {
+                        $('div.left_con.setfr').html('<div class="list_title"><h3>' + '搜索词:' + value2 + '</h3></div>' + resHtml)
+                    } else {
+                        $('div.left_con.setfr').html('<div class="list_title"><h3>没有数据~</h3></div>')
+                    }
+                }
+            });
+
+        }
+
+
+
+
+
+
+    });
+</script>

@@ -212,3 +212,32 @@
 </body>
 
 </html>
+<script>
+    $(function () {
+        // 一.加载页面获取文章的id,根据id发送请求
+        var articleId = window.location.search.split('=')[1];
+        // 如果是手动输入网址,则打回主页
+        if (articleId == undefined) {
+            window.location.href = './index.html';
+        }
+        $.ajax({
+            type: 'get',
+            url: 'http://localhost:8080/api/v1/index/article',
+            data: {
+                id: articleId
+            },
+            success: function (backData) {
+                if (backData.code == 200) {
+                    $('.breadcrumb').children('a').eq(1).text(backData.data.category);
+                    $('.article_title').text(backData.data.title);
+
+                }
+            }
+        });
+
+
+
+
+
+    });
+</script>

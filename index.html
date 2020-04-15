@@ -5,10 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>大事件-首页</title>
+    <title>大事件-前台首页</title>
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/font-awesome.min.css">
     <link rel="stylesheet" href="css/main.css">
+    <!-- 引入jq文件 -->
+    <script src="./js/jquery-1.12.4.min.js"></script>
+
 </head>
 
 <body>
@@ -228,8 +231,6 @@
 </html>
 <!-- 导入模板引擎js文件 -->
 <script src="./js/template-web.js"></script>
-<!-- 引入jq文件 -->
-<script src="./js/jquery-1.12.4.min.js"></script>
 
 <!-- ============================ 模板引擎模板 =================================== -->
 <!-- 一.最新资讯模板 -->
@@ -240,13 +241,15 @@
             <h4><a href="./article.html?id={{v.id}}">{{v.title}}</a></h4>
             <p>{{@ v.intro}}</p>
             <div class="new_info">
-                <span>标签：{{v.catagory}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( 5
+                <span>标签：{{v.catagory}}&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<i class="fa fa-eye"></i>&nbsp;阅读( {{v.read}}
                             )&nbsp;&nbsp;&nbsp;<i class="fa fa-commenting"></i>&nbsp;评论( {{v.comments}} )</span>
                 <b>发布于 {{v.date}}</b>
             </div>
      </div>
     {{/each}}
 </script>
+
+
 <!-- 二.热点图新闻模板 -->
 <script id="hotPic_temp" type="text/html">
     {{ each data v }}
@@ -260,6 +263,8 @@
         </li>
     {{/each}}
 </script>
+
+
 <!-- 三.一周热门排行 -->
 <script id="rank_temp" type="text/html">
     {{ each data v }}
@@ -276,16 +281,19 @@
         <a href="./article.html?id={{v.id}}">{{v.title}}</a></li>
     {{/each}}
 </script>
-<!-- 四.评论 -->
+
+
+<!-- 四.最新评论 -->
 <script id="comment_temp" type="text/html">
     {{ each data v }}
     <li>
-        <span>{{v.author}}</span>
+        <span>{{v.author.substring(0,1)}}</span>
         <b><em>{{v.author}}</em> 9个月前(08-14)说:</b>
         <strong>{{v.intro}}</strong>
     </li>
     {{/each}}
 </script>
+
 
 <!-- // 五. 焦点关注 -->
 <script id="attention_temp" type="text/html">
@@ -294,12 +302,14 @@
     {{/each}}
 </script>
 
+
 <!-- 六.文章类别 -->
 <script id="category_temp" type="text/html">
     {{ each data v }}
     <li><a href="./list.html?categoryId={{v.id}}">{{v.name}}</a></li>
     {{/each}}
 </script>
+
 
 <!-- ============================ js代码 =================================== -->
 <script>
@@ -316,7 +326,6 @@
                 }
             }
         });
-
 
         // 二.热点图新闻
         $.ajax({
@@ -342,7 +351,6 @@
             }
         });
 
-
         // 四. 评论
         $.ajax({
             type: 'get',
@@ -354,7 +362,6 @@
                 }
             }
         });
-
 
         // 五. 焦点关注
         $.ajax({
@@ -369,14 +376,13 @@
             }
         });
 
-
         // 六. 文章类别
         $.ajax({
             type: 'get',
             url: 'http://localhost:8080/api/v1/index/category',
             success: function (backData) {
                 if (backData.code == 200) {
-                    console.log(backData);
+                    // console.log(backData);
                     var resHtml = template('category_temp', backData);
                     $('ul.level_two').html('<li class="up"></li>' + resHtml);
                     $('ul.left_menu').html(resHtml);
@@ -384,6 +390,17 @@
             }
         });
 
+        // 七.文章搜索功能
+        $('.search_btn').on('click', function () {
+            // 获取用户输入的关键词
+            var searchTxt = $('.search_txt').val().trim();
+            if (searchTxt == '') {
+                alert('关键词不能为空');
+                return;
+            }
+            // 跳转
+            window.location.href = './list.html?search=' + searchTxt;
+        });
 
     });
 </script>

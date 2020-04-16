@@ -212,6 +212,29 @@
 </body>
 
 </html>
+<!-- =========================== 模板 ================================== -->
+
+<!-- info模板 -->
+<script id="info_temp" type="text/html">
+    {{data.auhtor}} 发布于 {{data.date}}&nbsp;&nbsp;&nbsp;分类: {{data.category}}
+    &nbsp;&nbsp;&nbsp;阅读:({{data.read}})&nbsp;&nbsp;&nbsp;评论: ({{data.comments}}) 
+</script>
+
+<!-- 评论模板 -->
+<script id="comment_temp" type="text/html">
+    {{ each data v }}
+    <div class="comment_detail_list">
+        <div class="person_pic fl">{{v.author.substring(0,1)}}</div>
+        <div class="name_time fl"><b>{{v.author}}</b><span>{{v.data}}{{v.time}}</span></div>
+        <div class="comment_text fl">
+            {{v.content}}
+        </div>
+    </div>
+    {{/each}}
+</script>
+
+
+<!-- =========================== js代码 ================================== -->
 <script>
     $(function () {
         // 一.加载页面获取文章的id,根据id发送请求
@@ -227,13 +250,83 @@
                 id: articleId
             },
             success: function (backData) {
+                console.log(backData);
                 if (backData.code == 200) {
-                    $('.breadcrumb').children('a').eq(1).text(backData.data.category);
-                    $('.article_title').text(backData.data.title);
-
+                    $('.breadcrumb').children('a').eq(1).text(backData.data.category);//文章类别
+                    $('.article_title').text(backData.data.title);//文章标题
+                    $('.article_con').html(backData.data.content);//文章标题
+                    // 显示文章的详细信息
+                    var resHtml = template('info_temp', backData);
+                    $('.article_info').html(resHtml);
+                    // 处理上一篇
+                    if (backData.data.prev == null) {
+                        $('.article_links>a:eq(0)').text('没有内容了');
+                    } else {
+                        $('.article_links>a:eq(0)').text(backData.data.prev.title);
+                        $('.article_links>a:eq(0)').attr('href', './article.html?id=' + backData.data.prev.id);
+                    }
+                    // 处理下一篇
+                    if (backData.data.next == null) {
+                        $('.article_links>a:eq(1)').text('没有内容了');
+                    } else {
+                        $('.article_links>a:eq(1)').text(backData.data.next.title);
+                        $('.article_links>a:eq(1)').attr('href', './article.html?id=' + backData.data.next.id);
+                    }
                 }
             }
         });
+
+
+        // 二.展示该文章下的所以评论
+        $.ajax({
+            type: 'get',
+            url: 'http://localhost:8080/api/v1/index/get_comment',
+            data: {
+                articleId: articleId
+            },
+            success: function (backData) {
+                if (backData.code == 200) {
+                    console.log(backData);
+                    var resHtml = template('comment_temp', backData);
+                    $('.comment_list_con').html(resHtml);
+                    $('.comment_count').html(backData.data.length + '条评论');
+                }
+            }
+        });
+
+
+        //三: 发表评论
+        //给评论按钮设置一个点击事件. 
+        $('.comment_sub').on('click', function (e) {
+            e.preventDefault();//取消默认的提交行为
+            //获取用户输入的名字和评论内容
+            var comment_name = $('.comment_name').val().trim(); //用户名
+            var comment_input = $('.comment_input').val().trim();//评论内容
+            //非空判断
+            if (comment_name == "" || comment_input == "") {
+                alert('用户名或者评论内容不能为空!');
+                return;
+            }
+            //发送ajax,完成评论
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8080/api/v1/index/post_comment',
+                data: {
+                    author: comment_name,
+                    content: comment_input,
+                    articleId: articleId
+                },
+                success: function (backData) {
+                    if (backData.code == 201) {
+                        alert('发表评论成功,等待管理员审核!');
+                        //输入框清空
+                        $('.comment_name').val("");
+                        $('.comment_input').val("");
+                    }
+                }
+            });
+        })
+
 
 
 
